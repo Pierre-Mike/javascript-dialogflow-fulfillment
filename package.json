@@ -1,0 +1,26 @@
+{
+  "name": "javascript-heroku-dialogflow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Logic2020/javascript-heroku-dialogflow.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Logic2020/javascript-heroku-dialogflow/issues"
+  },
+  "homepage": "https://github.com/Logic2020/javascript-heroku-dialogflow#readme",
+  "dependencies": {
+    "actions-on-google": "^2.6.0",
+    "body-parser": "^1.18.3",
+    "dialogflow-fulfillment": "^0.6.1",
+    "express": "^4.16.4"
+  }
+}

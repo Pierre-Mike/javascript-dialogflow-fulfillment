@@ -3,10 +3,13 @@
 const { WebhookClient, Card } = require("dialogflow-fulfillment");
 const express = require("express");
 const bodyParser = require("body-parser");
+/* 
 const basicAuth = require("express-basic-auth");
+*/
+
 const { google } = require("googleapis");
 
-const CONFIG = process.env.CONFIG || require("./settings.json"); 
+const CONFIG = process.env.CONFIG || require("./settings.json");
 const serviceAccountAuth = new google.auth.JWT({
   email: CONFIG.google.client_email,
   key: CONFIG.google.private_key,

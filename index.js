@@ -10,6 +10,7 @@ const basicAuth = require("express-basic-auth");
 const { google } = require("googleapis");
 
 const CONFIG = process.env.CONFIG || require("./settings.json");
+console.log(CONFIG)
 const serviceAccountAuth = new google.auth.JWT({
   email: CONFIG.google.client_email,
   key: CONFIG.google.private_key,
@@ -175,7 +176,9 @@ app.get("/", function(req, res) {
   res.send(JSON.stringify({ Hello: `word` }));
 });
 
-app.get("/getAToken", function(req, res) {});
+app.get("/getAToken", function(req, res) {
+  res.send(JSON.stringify({ Hello: `not done` }));
+});
 
 app.listen(process.env.PORT || 8080, function() {
   console.info(`Webhook listening on port 8080!`);

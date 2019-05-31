@@ -9,7 +9,8 @@ const basicAuth = require("express-basic-auth");
 
 const { google } = require("googleapis");
 
-const CONFIG = require("./settings.json") || JSON.parse(process.env.CONFIG);
+const CONFIG = process.env.CONFIG ? JSON.parse(process.env.CONFIG) : require("./settings.json") 
+
 const serviceAccountAuth = new google.auth.JWT({
   email: CONFIG.google.client_email,
   key: CONFIG.google.private_key,

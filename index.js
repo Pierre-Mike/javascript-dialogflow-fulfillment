@@ -9,7 +9,7 @@ const basicAuth = require("express-basic-auth");
 
 const { google } = require("googleapis");
 
-const CONFIG = JSON.parse(process.env.CONFIG) || require("./settings.json");
+const CONFIG = require("./settings.json") || JSON.parse(process.env.CONFIG);
 const serviceAccountAuth = new google.auth.JWT({
   email: CONFIG.google.client_email,
   key: CONFIG.google.private_key,
@@ -20,7 +20,20 @@ const calendarId = CONFIG.google.calendarId; // looks like "6ujc6j6rgfk02cp02vg6
 const calendar = google.calendar("v3");
 const timeZone = "America/Los_Angeles";
 const timeZoneOffset = "-07:00";
-
+const credentials = {
+  client: {
+    id: CONFIG.microsoft.clientId,
+    secret: CONFIG.microsoft.secret
+  },
+  auth: {
+    tokenHost: CONFIG.microsoft.loginUrl,
+    tokenPath: "/" + CONFIG.microsoft.tenant + CONFIG.microsoft.tokenPath,
+    authorizePath:
+      "/" + CONFIG.microsoft.tenant + CONFIG.microsoft.authorizePath
+  }
+};
+const oauth2 = require("simple-oauth2").create(credentials);
+const state = Math.random()
 /* 
 app.use(
   basicAuth({
@@ -110,21 +123,7 @@ function welcome(agent) {
 }
 
 function connection(agent) {
-  const credentials = {
-    client: {
-      id: CONFIG.microsoft.clientId,
-      secret: CONFIG.microsoft.secret
-    },
-    auth: {
-      tokenHost: CONFIG.microsoft.loginUrl,
-      tokenPath: "/" + CONFIG.microsoft.tenant + CONFIG.microsoft.tokenPath,
-      authorizePath:
-        "/" + CONFIG.microsoft.tenant + CONFIG.microsoft.authorizePath
-    }
-  };
-  const oauth2 = require("simple-oauth2").create(credentials);
-
-  const getURLAuthorizarionPlusRessource = state => {
+  const getURLAuthorizarionPlusRessource = () => {
     const redirect_uri = CONFIG.microsoft.redirect_uri;
 
     var urlAutorization = oauth2.authorizationCode.authorizeURL({
@@ -141,7 +140,7 @@ function connection(agent) {
       text:
         "This is the body text of a card.  You can even use line\n  breaks and emoji! 💁",
       buttonText: "Login",
-      buttonUrl: getURLAuthorizarionPlusRessource("test")
+      buttonUrl: getURLAuthorizarionPlusRessource()
     })
   );
 }
@@ -175,8 +174,19 @@ app.get("/", function(req, res) {
   res.send(JSON.stringify({ Hello: `word` }));
 });
 
-app.get("/getAToken", function(req, res) {
-  res.send(JSON.stringify({ Hello: `not done` }));
+app.get("/getAToken", async function(req, res) {
+  console.log(req.query);
+  const redirect_uri = CONFIG.microsoft.redirect_uri;
+  const code = req.query.code;
+  const options = {
+    code,
+    redirect_uri
+  };
+  const result = await oauth2.authorizationCode.getToken(options);
+  console.log("The resulting token: ", result);
+  const token = await oauth2.accessToken.create(result).token;
+  console.log("token : ", token);
+  res.send(JSON.stringify({ TOKEN: token }));
 });
 
 app.listen(process.env.PORT || 8080, function() {

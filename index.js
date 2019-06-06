@@ -3,13 +3,19 @@
 const { WebhookClient, Card } = require("dialogflow-fulfillment");
 const express = require("express");
 const bodyParser = require("body-parser");
+const NodeCache = require("node-cache");
+const cache = new NodeCache();
+var graph = require("@microsoft/microsoft-graph-client");
+
 /* 
 const basicAuth = require("express-basic-auth");
 */
 
 const { google } = require("googleapis");
 
-const CONFIG = process.env.CONFIG ? JSON.parse(process.env.CONFIG) : require("./settings.json") 
+const CONFIG = process.env.CONFIG
+  ? JSON.parse(process.env.CONFIG)
+  : require("./settings.json");
 
 const serviceAccountAuth = new google.auth.JWT({
   email: CONFIG.google.client_email,
@@ -34,19 +40,27 @@ const credentials = {
   }
 };
 const oauth2 = require("simple-oauth2").create(credentials);
-const state = Math.random()
 /* 
 app.use(
   basicAuth({
     users: { admin: "supersecret" }
-  })
-);s
+  })  
+);
  */
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+function getClientGraph(accessToken) {
+  const client = graph.Client.init({
+    authProvider: done => {
+      done(null, accessToken);
+    }
+  });
+  return client;
+}
 
 function check_appointment(agent) {
   const dateTimeStart = new Date(
@@ -120,19 +134,25 @@ function createCalendarEvent(dateTimeStart, dateTimeEnd) {
 }
 
 function welcome(agent) {
-  agent.add(`Welcome to Express.JS webhook!`);
+  agent.add("hello express")
 }
 
-function connection(agent) {
-  const getURLAuthorizarionPlusRessource = () => {
-    const redirect_uri = CONFIG.microsoft.redirect_uri;
+function getURLAuthorizarionPlusRessource(state) {
+  const redirect_uri = CONFIG.microsoft.redirect_uri;
+  var urlAutorization = oauth2.authorizationCode.authorizeURL({
+    redirect_uri,
+    state
+  });
+  return urlAutorization + "&resource=https://graph.microsoft.com/";
+}
 
-    var urlAutorization = oauth2.authorizationCode.authorizeURL({
-      redirect_uri,
-      state
-    });
-    return urlAutorization + "&resource=https://graph.microsoft.com/";
-  };
+async function connection(agent) {
+  let state = agent.context.session;
+  agent.context.set({
+    name: "sharepoint_connection",
+    lifespan: 50,
+    parameters: {}
+  });
   agent.add(
     new Card({
       title: "Title: this is a card title",
@@ -141,13 +161,39 @@ function connection(agent) {
       text:
         "This is the body text of a card.  You can even use line\n  breaks and emoji! 💁",
       buttonText: "Login",
-      buttonUrl: getURLAuthorizarionPlusRessource()
+      buttonUrl: getURLAuthorizarionPlusRessource(state)
     })
   );
 }
 function fallback(agent) {
-  agent.add(`I didn't understand`);
-  agent.add(`I'm sorry, can you try again?`);
+  agent.add(parameters);
+}
+
+function sharepointContext(agent) {
+  if (cache.get(agent.context.session, false)) {
+    console.log("set from cache to context");
+    agent.context.set({
+      name: "sharepoint_connection",
+      lifespan: 50,
+      parameters: { access_token: cache.get(agent.context.session) }
+    });
+  }
+  return agent.context.get("sharepoint_connection", {}).parameters;
+}
+
+async function search(agent) {
+  var cntxtParam = await sharepointContext(agent);
+  if ("access_token" in cntxtParam) {
+    let client = getClientGraph(cntxtParam.access_token);
+    let me = await client
+      .api("/me")
+      .get()
+      .catch(e => console.log(e));
+    agent.add(me.displayName);
+  } else {
+    agent.add("you are not connected !");
+    connection(agent);
+  }
 }
 
 function getMapIntents() {
@@ -155,6 +201,7 @@ function getMapIntents() {
   intentMap.set("Check an appointment", check_appointment);
   intentMap.set("Default Welcome Intent", welcome);
   intentMap.set("Login SharePoint", connection);
+  intentMap.set("Search SharePoint", search);
   intentMap.set("Fallback", fallback);
   return intentMap;
 }
@@ -176,18 +223,18 @@ app.get("/", function(req, res) {
 });
 
 app.get("/getAToken", async function(req, res) {
-  console.log(req.query);
-  const redirect_uri = CONFIG.microsoft.redirect_uri;
-  const code = req.query.code;
   const options = {
-    code,
-    redirect_uri
+    code: req.query.code,
+    redirect_uri: CONFIG.microsoft.redirect_uri
   };
-  const result = await oauth2.authorizationCode.getToken(options);
-  console.log("The resulting token: ", result);
-  const token = await oauth2.accessToken.create(result).token;
-  console.log("token : ", token);
-  res.send(JSON.stringify({ TOKEN: token }));
+  const result = await oauth2.authorizationCode
+    .getToken(options)
+    .catch(e => console.log(e));
+  const access_token = oauth2.accessToken.create(result).token.access_token;
+
+  cache.set(req.query.state, access_token, 100000000);
+
+  res.send(JSON.stringify(cache.get(req.query.state)));
 });
 
 app.listen(process.env.PORT || 8080, function() {

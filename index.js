@@ -1,6 +1,6 @@
 "use strict";
 
-const { WebhookClient, Card } = require("dialogflow-fulfillment");
+const { WebhookClient, Card, Suggestion } = require("dialogflow-fulfillment");
 const express = require("express");
 const bodyParser = require("body-parser");
 const NodeCache = require("node-cache");
@@ -53,13 +53,27 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-function getClientGraph(accessToken) {
-  const client = graph.Client.init({
-    authProvider: done => {
-      done(null, accessToken);
+function getClientGraph(accessToken, apiUrl, search, filter, select) {
+  return new Promise((resolve, reject) => {
+    var client = graph.Client.init({
+      authProvider: done => {
+        done(null, accessToken);
+      }
+    }).api(apiUrl);
+    if (search) {
+      client.search(search);
     }
+    if (filter) {
+      client.filter(filter);
+    }
+    if (select) {
+      client.select(select);
+    }
+    client
+      .get()
+      .catch(err => reject(err))
+      .then(e => resolve(e));
   });
-  return client;
 }
 
 function check_appointment(agent) {
@@ -134,7 +148,7 @@ function createCalendarEvent(dateTimeStart, dateTimeEnd) {
 }
 
 function welcome(agent) {
-  agent.add("hello express")
+  agent.add("hello express");
 }
 
 function getURLAuthorizarionPlusRessource(state) {
@@ -148,22 +162,28 @@ function getURLAuthorizarionPlusRessource(state) {
 
 async function connection(agent) {
   let state = agent.context.session;
-  agent.context.set({
-    name: "sharepoint_connection",
-    lifespan: 50,
-    parameters: {}
-  });
-  agent.add(
-    new Card({
-      title: "Title: this is a card title",
-      imageUrl:
-        "http://www.tascmanagement.com/wp-content/uploads/2016/05/course-logo-small-SP-300x250.png",
-      text:
-        "This is the body text of a card.  You can even use line\n  breaks and emoji! 💁",
-      buttonText: "Login",
-      buttonUrl: getURLAuthorizarionPlusRessource(state)
-    })
-  );
+  if (agent.context.get("sharepoint_connection")) {
+    agent.add("You are already connected");
+    agent.add(new Suggestion("Search Sharepoint"));
+    agent.add(new Suggestion("Sharepoint logout"));
+  } else {
+    agent.context.set({
+      name: "sharepoint_connection",
+      lifespan: 50,
+      parameters: {}
+    });
+    agent.add(
+      new Card({
+        title: "Title: this is a card title",
+        imageUrl:
+          "http://www.tascmanagement.com/wp-content/uploads/2016/05/course-logo-small-SP-300x250.png",
+        text:
+          "This is the body text of a card.  You can even use line\n  breaks and emoji! 💁",
+        buttonText: "Login",
+        buttonUrl: getURLAuthorizarionPlusRessource(state)
+      })
+    );
+  }
 }
 function fallback(agent) {
   agent.add(parameters);
@@ -172,11 +192,13 @@ function fallback(agent) {
 function sharepointContext(agent) {
   if (cache.get(agent.context.session, false)) {
     console.log("set from cache to context");
+    let param = { access_token: cache.get(agent.context.session) };
     agent.context.set({
       name: "sharepoint_connection",
       lifespan: 50,
-      parameters: { access_token: cache.get(agent.context.session) }
+      parameters: param
     });
+    return param;
   }
   return agent.context.get("sharepoint_connection", {}).parameters;
 }
@@ -184,12 +206,17 @@ function sharepointContext(agent) {
 async function search(agent) {
   var cntxtParam = await sharepointContext(agent);
   if ("access_token" in cntxtParam) {
-    let client = getClientGraph(cntxtParam.access_token);
-    let me = await client
-      .api("/me")
-      .get()
-      .catch(e => console.log(e));
-    agent.add(me.displayName);
+    let me = await getClientGraph(cntxtParam.access_token, "/sites", "test");
+    console.log(me);
+    me.value.map(e =>
+      agent.add(
+        new Card({
+          title: e.displayName,
+          buttonText: e.name,
+          buttonUrl: e.webUrl
+        })
+      )
+    );
   } else {
     agent.add("you are not connected !");
     connection(agent);

@@ -162,65 +162,69 @@ function getURLAuthorizarionPlusRessource(state) {
 
 async function connection(agent) {
   let state = agent.context.session;
-  if (agent.context.get("sharepoint_connection")) {
-    agent.add("You are already connected");
-    agent.add(new Suggestion("Search Sharepoint"));
-    agent.add(new Suggestion("Sharepoint logout"));
-  } else {
-    agent.context.set({
-      name: "sharepoint_connection",
-      lifespan: 50,
-      parameters: {}
+  agent.context.set({
+    name: "sharepoint_connection",
+    lifespan: 50
     });
-    agent.add(
-      new Card({
-        title: "Title: this is a card title",
-        imageUrl:
-          "http://www.tascmanagement.com/wp-content/uploads/2016/05/course-logo-small-SP-300x250.png",
-        text:
-          "This is the body text of a card.  You can even use line\n  breaks and emoji! 💁",
-        buttonText: "Login",
-        buttonUrl: getURLAuthorizarionPlusRessource(state)
-      })
-    );
-  }
+  agent.add(
+    new Card({
+      title: "Connection to SharePoint",
+      imageUrl:
+        "http://www.tascmanagement.com/wp-content/uploads/2016/05/course-logo-small-SP-300x250.png",
+      text:
+        "This is the body text of a card.  You can even use line\n  breaks and emoji! 💁",
+      buttonText: "Login",
+      buttonUrl: getURLAuthorizarionPlusRessource(state)
+    })
+  );
 }
 function fallback(agent) {
-  agent.add(parameters);
+  agent.add("NO INTENT");
 }
 
 function sharepointContext(agent) {
   if (cache.get(agent.context.session, false)) {
     console.log("set from cache to context");
-    let param = { access_token: cache.get(agent.context.session) };
     agent.context.set({
       name: "sharepoint_connection",
       lifespan: 50,
-      parameters: param
+      parameters: { access_token: cache.get(agent.context.session) }
     });
-    return param;
   }
   return agent.context.get("sharepoint_connection", {}).parameters;
 }
 
 async function search(agent) {
-  var cntxtParam = await sharepointContext(agent);
+  var cntxtParam = sharepointContext(agent)
+  console.log("cntxtParam",cntxtParam)
   if ("access_token" in cntxtParam) {
-    let me = await getClientGraph(cntxtParam.access_token, "/sites", "test");
-    console.log(me);
-    me.value.map(e =>
-      agent.add(
-        new Card({
-          title: e.displayName,
-          buttonText: e.name,
-          buttonUrl: e.webUrl
-        })
-      )
+    let res = await getClientGraph(
+      cntxtParam.access_token,
+      "/sites",
+      agent.parameters.name
     );
+    console.log(res);
+    if (res.value.length === 0) {
+      agent.add(`No site found for "${agent.parameters.name}".`);
+    } else {
+      res.value.map(e =>
+        agent.add(
+          new Card({
+            title: e.displayName,
+            buttonText: e.name,
+            buttonUrl: e.webUrl
+          })
+        )
+      );
+    }
   } else {
     agent.add("you are not connected !");
     connection(agent);
   }
+}
+function reset(agent) {
+  agent.context.delete("sharepoint_connection");
+  agent.add("reset successful");
 }
 
 function getMapIntents() {
@@ -230,6 +234,7 @@ function getMapIntents() {
   intentMap.set("Login SharePoint", connection);
   intentMap.set("Search SharePoint", search);
   intentMap.set("Fallback", fallback);
+  intentMap.set("reset", reset);
   return intentMap;
 }
 

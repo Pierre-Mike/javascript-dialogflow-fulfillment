@@ -1,31 +1,37 @@
 {
-  "name": "javascript-heroku-dialogflow",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "ngrok": "ngrok http 8080"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Logic2020/javascript-heroku-dialogflow.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Logic2020/javascript-heroku-dialogflow/issues"
-  },
-  "homepage": "https://github.com/Logic2020/javascript-heroku-dialogflow#readme",
-  "dependencies": {
-    "@microsoft/microsoft-graph-client": "^1.7.0",
-    "actions-on-google": "^2.6.0",
-    "body-parser": "^1.18.3",
-    "dialogflow-fulfillment": "^0.6.1",
-    "express": "^4.16.4",
-    "ngrok": "^3.1.1",
-    "node-cache": "^4.2.0",
-    "simple-oauth2": "^2.2.1"
-  }
+	"name": "javascript-heroku-dialogflow",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "mocha tests",
+		"start": "node index.js",
+		"ngrok": "ngrok http 8080"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Logic2020/javascript-heroku-dialogflow.git"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Logic2020/javascript-heroku-dialogflow/issues"
+	},
+	"homepage": "https://github.com/Logic2020/javascript-heroku-dialogflow#readme",
+	"dependencies": {
+		"@microsoft/microsoft-graph-client": "^1.7.0",
+		"actions-on-google": "^2.6.0",
+		"body-parser": "^1.18.3",
+		"dialogflow-fulfillment": "^0.6.1",
+		"express": "^4.16.4",
+		"express-basic-auth": "^1.2.0",
+		"node-cache": "^4.2.0",
+		"simple-oauth2": "^2.2.1"
+	},
+	"devDependencies": {
+		"ngrok": "^3.1.1",
+		"chai": "^4.2.0",
+		"chai-spies": "^1.0.0",
+		"mocha": "^6.1.4"
+	}
 }

@@ -12,7 +12,8 @@ function getMapIntents() {
 	intentMap.set("Search SharePoint", search);
 	intentMap.set("Fallback", fallback);
 	intentMap.set("reset", reset);
-	intentMap.set("Request_IT_ticket", requestItTicket);
+	intentMap.set("Request_IT_ticket - yes - custom - custom", requestItTicket);
+	intentMap.set("create it ticket simple", requestItTicket);
 	return intentMap;
 }
 

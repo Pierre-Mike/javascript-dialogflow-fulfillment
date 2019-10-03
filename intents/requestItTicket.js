@@ -1,4 +1,5 @@
 const freshDesk = require("../lib").CONFIG.freshDesk;
+const { Card } = require("dialogflow-fulfillment");
 
 function createTicket(email, description) {
 	var myHeaders = new Headers();
@@ -20,8 +21,7 @@ function createTicket(email, description) {
 			status: 2,
 			source: 2,
 			ticket_type: "Incident"
-		},
-		cc_emails: [email]
+		}
 	};
 	var requestOptions = {
 		method: "POST",
@@ -46,11 +46,21 @@ async function requestItTicket(agent) {
 	console.log(description);
 	await createTicket(email, description)
 		.then(response => response.text())
-		.then(result =>
-			agent.add(
-				"Your ticket has been raised. you should receive a mail in few seconds."
-			)
-		)
+		.then(result => {
+			console.log(result);
+			if (result) {
+				let idTicket = JSON.parse(result).item.helpdesk_ticket.display_id;
+				let card = new Card(
+					`Your ticket has been raised. you should receive a mail in few seconds.#${idTicket}`
+				);
+				card.setButton({
+					text: `Ticket #${idTicket}`,
+					url: `https://logic2020.freshservice.com/helpdesk/tickets/${idTicket}`
+				});
+				agent.add(card); // return agent
+			}
+		})
+
 		.catch(error => agent.add("I'm sorry an error happen"));
 	agent.context.delete("request_it_ticket-yes-custom-followup");
 }

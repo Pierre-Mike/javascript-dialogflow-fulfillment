@@ -47,7 +47,6 @@ async function requestItTicket(agent) {
 	await createTicket(email, description)
 		.then(response => response.text())
 		.then(result => {
-			console.log(result);
 			if (result) {
 				let idTicket = JSON.parse(result).item.helpdesk_ticket.display_id;
 				let card = new Card(
@@ -61,7 +60,10 @@ async function requestItTicket(agent) {
 			}
 		})
 
-		.catch(error => agent.add("I'm sorry an error happen"));
+		.catch(error => {
+			console.error(error);
+			agent.add("I'm sorry an error happen");
+		});
 	agent.context.delete("request_it_ticket-yes-custom-followup");
 }
 

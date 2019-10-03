@@ -46,8 +46,12 @@ async function requestItTicket(agent) {
 	console.log(description);
 	await createTicket(email, description)
 		.then(response => response.text())
-		.then(result => agent.add("Your ticket has been raised."))
-		.catch(error => agent.add("I'm sorry a error happen"));
+		.then(result =>
+			agent.add(
+				"Your ticket has been raised. you should receive a mail in few seconds."
+			)
+		)
+		.catch(error => agent.add("I'm sorry an error happen"));
 	agent.context.delete("request_it_ticket-yes-custom-followup");
 }
 

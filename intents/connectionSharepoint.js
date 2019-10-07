@@ -1,5 +1,5 @@
 const { Card } = require("dialogflow-fulfillment");
-const { CONFIG, oauth2 } = require("../lib");
+const { CONFIG, oauth2 } = require("../lib/lib");
 
 function getUrlLogin(agent, auth, redirect_uri) {
 	let state = agent.context.session;

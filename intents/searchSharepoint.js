@@ -1,33 +1,29 @@
-var { cache } = require("../lib");
+var { cache } = require("../lib/lib");
 var graph = require("@microsoft/microsoft-graph-client");
 const { Card } = require("dialogflow-fulfillment");
-
+const microsoft = require("../lib/lib").CONFIG.microsoft;
+const getTokenGraph = require("../lib/graph");
 function getClientGraph(accessToken, apiUrl, search, filter, select) {
-	return new Promise((resolve, reject) => {
-		var client = graph.Client.init({
-			authProvider: done => {
-				done(null, accessToken);
-			}
-		}).api(apiUrl);
-		if (search) {
-			client.search(search);
+	var client = graph.Client.init({
+		authProvider: done => {
+			done(null, accessToken);
 		}
-		if (filter) {
-			client.filter(filter);
-		}
-		if (select) {
-			client.select(select);
-		}
-		client
-			.get()
-			.catch(err => reject(err))
-			.then(e => resolve(e));
+	}).api(apiUrl);
+	if (search) {
+		client.search(search);
+	}
+	if (filter) {
+		client.filter(filter);
+	}
+	if (select) {
+		client.select(select);
+	}
+	return client.get(e => {
+		console.log(e);
 	});
 }
 
-function sharepointContext(agent) {
-	console.log(agent.context);
-
+/* function sharepointContext(agent) {  
 	if (cache.get(agent.context.session, false)) {
 		console.log("set from cache to context");
 		agent.context.set({
@@ -37,17 +33,21 @@ function sharepointContext(agent) {
 		});
 	}
 	return agent.context.get("sharepoint_connection", {}).parameters;
-}
+} */
 
 async function search(agent) {
-	var cntxtParam = sharepointContext(agent);
-	console.log("cntxtParam", cntxtParam);
-	if ("access_token" in cntxtParam) {
-		let res = await getClientGraph(
-			cntxtParam.access_token,
-			"/sites",
-			agent.parameters.name
-		);
+	let token = await getTokenGraph(
+		microsoft.clientId,
+		microsoft.clientSecret,
+		microsoft.tenant
+	);
+	console.log(token);
+	console.log(agent.parameters.name);
+
+	if (token) {
+		let res = await getClientGraph(token, "/me")
+			.then(e => e)
+			.catch(err => console.log(err));
 		console.log(res);
 		if (res.value.length === 0) {
 			agent.add(`No site found for "${agent.parameters.name}".`);
@@ -63,7 +63,14 @@ async function search(agent) {
 			);
 		}
 	} else {
-		agent.add("you are not connected !");
+		console.log(
+			"no token provided by MsGraph, ",
+			`client id : ${microsoft.clientId},
+			tenant : ${microsoft.tenant}`
+		);
+		agent.add(
+			"An error with the Authentication and MsGraph, Contact the It Department."
+		);
 	}
 }
 

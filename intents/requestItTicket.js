@@ -1,4 +1,4 @@
-const freshDesk = require("../lib").CONFIG.freshDesk;
+const freshDesk = require("../lib/lib").CONFIG.freshDesk;
 const { Card } = require("dialogflow-fulfillment");
 
 function createTicket(email, description) {

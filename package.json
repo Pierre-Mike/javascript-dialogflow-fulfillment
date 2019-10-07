@@ -25,13 +25,20 @@
 		"dialogflow-fulfillment": "^0.6.1",
 		"express": "^4.16.4",
 		"express-basic-auth": "^1.2.0",
+		"follow-redirects": "^1.9.0",
+		"iconv": "^2.3.5",
 		"node-cache": "^4.2.0",
 		"simple-oauth2": "^2.2.1"
 	},
 	"devDependencies": {
-		"ngrok": "^3.1.1",
+		"@babel/cli": "^7.6.2",
+		"@babel/core": "^7.6.2",
+		"@babel/node": "^7.6.2",
+		"@babel/preset-env": "^7.6.2",
+		"@babel/register": "^7.6.2",
 		"chai": "^4.2.0",
 		"chai-spies": "^1.0.0",
-		"mocha": "^6.1.4"
+		"mocha": "^6.1.4",
+		"ngrok": "^3.1.1"
 	}
 }

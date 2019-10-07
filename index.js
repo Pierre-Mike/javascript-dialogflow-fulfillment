@@ -2,7 +2,7 @@
 const { WebhookClient } = require("dialogflow-fulfillment");
 const express = require("express");
 const bodyParser = require("body-parser");
-const { CONFIG, cache, oauth2 } = require("./lib");
+const { CONFIG, cache, oauth2 } = require("./lib/lib");
 
 const PORT = process.env.PORT || 8080;
 const intents = require("./intents");

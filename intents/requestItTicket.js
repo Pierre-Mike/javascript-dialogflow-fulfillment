@@ -1,8 +1,9 @@
 const freshDesk = require("../lib/lib").CONFIG.freshDesk;
 const { Card } = require("dialogflow-fulfillment");
+const fetch = require("node-fetch");
 
 function createTicket(email, description) {
-	var myHeaders = new Headers();
+	var myHeaders = new fetch.Headers();
 	myHeaders.append("Content-Type", "application/json");
 	myHeaders.append(
 		"Authorization",

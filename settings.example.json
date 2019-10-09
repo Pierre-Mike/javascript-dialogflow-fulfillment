@@ -1,0 +1,13 @@
+{
+	"microsoft": {
+		"tenant": "************************************",
+		"clientId": "************************************",
+		"clientSecret": "************************************"
+	},
+	"freshDesk": {
+		"url": "https://*********.freshservice.com/helpdesk/tickets.json",
+		"username": "XXXXXXXXXXX",
+		"password": "**********"
+	},
+	"auth": { "users": { "XXXXXXXXX": "XXXXXXXXXX" } }
+}

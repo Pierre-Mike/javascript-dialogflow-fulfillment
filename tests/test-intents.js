@@ -8,10 +8,6 @@ const intents = require("../intents");
 const welcome = require("../intents/welcome");
 const reset = require("../intents/reset");
 const fallback = require("../intents/fallback");
-const {
-	getURLAuthorizationPlusResource,
-	connection
-} = require("../intents/connectionSharepoint");
 
 chai.use(spies);
 
@@ -19,9 +15,8 @@ describe("getMapIntents", () => {
 	it("should have function for every intent", async () => {
 		var intentsName = [
 			"Default Welcome Intent",
-			"Login SharePoint",
-			"Search SharePoint",
 			"Fallback",
+			"Request_IT_ticket - yes - custom - custom",
 			"reset"
 		];
 		var intentsMap = intents();
@@ -47,15 +42,5 @@ describe("intents", () => {
 		var spyAdd = chai.spy();
 		fallback({ add: spyAdd });
 		expect(spyAdd).called.with("NO INTENT");
-	});
-	it("connection", async () => {
-		var spyAdd = chai.spy();
-		var spySet = chai.spy();
-		connection({ add: spyAdd, context: { set: spySet } });
-		expect(spyAdd).called.once;
-		expect(spySet).called.with({
-			name: "sharepoint_connection",
-			lifespan: 50
-		});
 	});
 });

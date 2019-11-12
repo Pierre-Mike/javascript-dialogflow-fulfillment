@@ -12,12 +12,7 @@ chai.use(spies);
 
 describe("getMapIntents", () => {
 	it("should have function for every intent", async () => {
-		var intentsName = [
-			"Default Welcome Intent",
-			"Fallback",
-			"Request_IT_ticket - yes - custom - custom",
-			"reset"
-		];
+		var intentsName = ["Default Welcome Intent", "reset"];
 		var intentsMap = intents();
 		// EVERY INTENT HAS TO BE IN THE INTENTMAP
 		intentsName.forEach(e => expect(intentsMap.has(e)).to.be.true);
@@ -26,6 +21,7 @@ describe("getMapIntents", () => {
 
 describe("intents", () => {
 	var spyAdd = chai.spy();
+
 	it("welcome", async () => {
 		welcome({ add: spyAdd });
 		expect(spyAdd).called.with("hello express");
@@ -36,10 +32,5 @@ describe("intents", () => {
 		reset({ add: spyAdd, context: { delete: spyDel } });
 		expect(spyAdd).called.with("reset successful");
 		expect(spyDel).called.with("sharepoint_connection");
-	});
-	it("fallback", async () => {
-		var spyAdd = chai.spy();
-		fallback({ add: spyAdd });
-		expect(spyAdd).called.with("NO INTENT");
 	});
 });

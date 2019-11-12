@@ -6,6 +6,7 @@
 	"scripts": {
 		"test": "mocha tests",
 		"start": "node index.js",
+		"local": "node local.js",
 		"ngrok": "ngrok http 8080"
 	},
 	"repository": {
@@ -21,6 +22,7 @@
 	"dependencies": {
 		"@microsoft/microsoft-graph-client": "^1.7.0",
 		"actions-on-google": "^2.6.0",
+		"aws-serverless-express": "^3.3.6",
 		"body-parser": "^1.18.3",
 		"dialogflow-fulfillment": "^0.6.1",
 		"express": "^4.16.4",

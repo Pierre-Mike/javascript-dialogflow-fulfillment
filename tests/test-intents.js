@@ -7,7 +7,6 @@ const expect = chai.expect;
 const intents = require("../intents");
 const welcome = require("../intents/welcome");
 const reset = require("../intents/reset");
-const fallback = require("../intents/fallback");
 
 chai.use(spies);
 

@@ -90,4 +90,5 @@ settings.json
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
-target/lambda.zip
+target/
+*.zip

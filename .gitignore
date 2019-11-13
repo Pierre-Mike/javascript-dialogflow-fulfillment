@@ -88,4 +88,6 @@ settings.json
 .vscode
 .idea
 .terraform
-modules
+terraform.tfstate
+terraform.tfstate.backup
+target/lambda.zip
